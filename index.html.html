@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>לוח מעקב פרויקטים</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --blue:#1A3A6B;--blue-light:#E8EFF9;--blue-mid:#2E5BA8;
+  --green:#1B6B3A;--green-light:#E8F5EE;
+  --orange:#8B4A00;--orange-light:#FEF3E2;
+  --red:#8B1A1A;--red-light:#FDEAEA;
+  --yellow:#7A5C00;--yellow-light:#FEF9E2;
+  --text:#1A1F2E;--text2:#5A6278;--text3:#9AA0B4;
+  --bg:#F4F6FA;--card:#FFFFFF;--border:#DDE1EA;--border2:#C8CEDB;
+  --concept-bg:#EDE9FE;--concept-txt:#4C1D95;
+  --spec-bg:#D1FAE5;--spec-txt:#065F46;
+  --dev-bg:#FEF3C7;--dev-txt:#92400E;
+  --test-bg:#DBEAFE;--test-txt:#1E40AF;
+  --other-bg:#F3F4F6;--other-txt:#374151;
+  --radius:10px;--shadow:0 1px 4px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.05);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Heebo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+.topbar{background:var(--blue);padding:0 28px;display:flex;align-items:center;gap:16px;height:56px}
+.topbar-title{color:#fff;font-size:17px;font-weight:600}
+.topbar-sub{color:rgba(255,255,255,.55);font-size:12px;margin-right:8px}
+.topbar-space{flex:1}
+.cal-btn{display:flex;align-items:center;gap:7px;padding:8px 16px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:7px;color:#fff;font-size:12px;font-weight:500;cursor:pointer;font-family:'Heebo',sans-serif;transition:background .15s}
+.cal-btn:hover{background:rgba(255,255,255,.22)}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:20px 28px 0}
+.scard{background:var(--card);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);border-right:4px solid transparent}
+.scard.c-blue{border-right-color:var(--blue-mid)}.scard.c-orange{border-right-color:#D97706}.scard.c-red{border-right-color:#DC2626}.scard.c-green{border-right-color:#16A34A}
+.scard-label{font-size:11px;color:var(--text2);font-weight:500;margin-bottom:5px}
+.scard-value{font-size:28px;font-weight:700;line-height:1.1}
+.c-blue .scard-value{color:var(--blue-mid)}.c-orange .scard-value{color:#D97706}.c-red .scard-value{color:#DC2626}.c-green .scard-value{color:#16A34A}
+.scard-sub{font-size:11px;color:var(--text3);margin-top:4px}
+.main{padding:20px 28px 40px}
+.tabs-row{display:flex;align-items:center;margin-bottom:16px;border-bottom:2px solid var(--border)}
+.tab{padding:10px 22px;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;background:none;border-top:none;border-left:none;border-right:none;font-family:'Heebo',sans-serif;transition:all .15s}
+.tab.active{color:var(--blue-mid);border-bottom-color:var(--blue-mid);font-weight:600}
+.tab:hover:not(.active){color:var(--text)}
+.tab-count{display:inline-block;background:var(--blue-light);color:var(--blue-mid);font-size:11px;font-weight:600;padding:1px 7px;border-radius:20px;margin-right:6px}
+.tab.active .tab-count{background:var(--blue-mid);color:#fff}
+.tabs-right{margin-right:auto;display:flex;align-items:center;gap:8px}
+.add-btn{display:flex;align-items:center;gap:6px;padding:8px 16px;background:var(--blue-mid);border:none;border-radius:7px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:'Heebo',sans-serif;transition:background .15s}
+.add-btn:hover{background:var(--blue)}
+.filters{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.filter-label{font-size:12px;color:var(--text2);font-weight:500}
+.filter-select,.search-input{font-size:12px;padding:7px 11px;border:1px solid var(--border);border-radius:7px;background:var(--card);color:var(--text);outline:none;font-family:'Heebo',sans-serif;transition:border .15s}
+.filter-select:focus,.search-input:focus{border-color:var(--blue-mid)}
+.search-input{min-width:180px}
+.table-wrap{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:900px}
+thead{background:#F8F9FC}
+thead th{padding:11px 10px;text-align:right;font-size:11px;font-weight:600;color:var(--text2);letter-spacing:.04em;border-bottom:1px solid var(--border);white-space:nowrap}
+tbody tr.data-row{border-bottom:1px solid var(--border);transition:background .1s}
+tbody tr.data-row:hover{background:#FAFBFD}
+td{padding:7px 10px;vertical-align:top;text-align:right}
+
+/* INLINE FIELDS */
+.f-text{font-weight:600;font-size:13px;color:var(--text);border:1.5px solid transparent;border-radius:5px;padding:4px 6px;background:transparent;width:100%;font-family:'Heebo',sans-serif;resize:none;overflow:hidden;line-height:1.4;transition:border .15s,background .15s;display:block}
+.f-text:hover{border-color:var(--border2)}
+.f-text:focus{border-color:var(--blue-mid);background:#fff;outline:none;box-shadow:0 0 0 3px rgba(46,91,168,.08)}
+.f-desc{font-size:11px;color:var(--text3);font-weight:400;margin-top:2px}
+.f-desc::placeholder{color:var(--text3);font-style:italic;font-size:11px}
+.f-date{font-size:12px;color:var(--text2);border:1.5px solid transparent;border-radius:5px;padding:4px 6px;background:transparent;font-family:'Heebo',sans-serif;width:100%;min-width:108px;transition:border .15s,background .15s;cursor:pointer}
+.f-date:hover{border-color:var(--border2)}
+.f-date:focus{border-color:var(--blue-mid);background:#fff;outline:none;box-shadow:0 0 0 3px rgba(46,91,168,.08)}
+.f-part{font-size:12px;color:var(--text2);border:1.5px solid transparent;border-radius:5px;padding:4px 6px;background:transparent;font-family:'Heebo',sans-serif;width:100%;transition:border .15s,background .15s}
+.f-part:hover{border-color:var(--border2)}
+.f-part:focus{border-color:var(--blue-mid);background:#fff;outline:none;box-shadow:0 0 0 3px rgba(46,91,168,.08)}
+.f-part::placeholder{color:var(--text3);font-style:italic;font-size:11px}
+
+/* STATUS */
+.stat-sel{appearance:none;-webkit-appearance:none;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;border:none;cursor:pointer;font-family:'Heebo',sans-serif;width:100%;text-align:center}
+.stat-sel:focus{outline:2px solid var(--blue-mid);outline-offset:1px}
+.s-concept{background:var(--concept-bg);color:var(--concept-txt)}
+.s-spec{background:var(--spec-bg);color:var(--spec-txt)}
+.s-dev{background:var(--dev-bg);color:var(--dev-txt)}
+.s-test{background:var(--test-bg);color:var(--test-txt)}
+.s-other{background:var(--other-bg);color:var(--other-txt)}
+.cust-in{font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;border:1.5px solid var(--border2);background:var(--other-bg);color:var(--other-txt);font-family:'Heebo',sans-serif;width:100%;margin-top:4px;text-align:center}
+.cust-in:focus{outline:2px solid var(--blue-mid);outline-offset:1px;border-color:var(--blue-mid)}
+
+/* FLAGS */
+.fb{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;white-space:nowrap}
+.flag-ok{background:var(--green-light);color:var(--green)}
+.flag-soon{background:var(--yellow-light);color:var(--yellow)}
+.flag-urgent{background:var(--orange-light);color:var(--orange)}
+.flag-overdue{background:var(--red-light);color:var(--red)}
+
+.del-btn{background:none;border:none;padding:5px 7px;cursor:pointer;color:var(--text3);font-size:16px;border-radius:5px;line-height:1;transition:all .12s}
+.del-btn:hover{background:var(--red-light);color:var(--red)}
+.empty-row td{text-align:center;padding:3rem;color:var(--text3);font-size:13px}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(10,15,35,.5);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.modal-bg.open{display:flex}
+.modal{background:var(--card);border-radius:14px;padding:26px 28px;width:500px;max-width:96vw;max-height:92vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.18);animation:su .2s ease}
+@keyframes su{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
+.mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.mt{font-size:16px;font-weight:700}
+.mc{background:none;border:none;font-size:22px;color:var(--text3);cursor:pointer;padding:2px 6px;border-radius:5px;line-height:1}
+.mc:hover{background:var(--bg)}
+.mf{margin-bottom:13px}
+.mf label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:5px}
+.mf input,.mf select,.mf textarea{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--text);background:var(--card);font-family:'Heebo',sans-serif;outline:none;transition:border .15s;direction:rtl}
+.mf textarea{resize:vertical;min-height:70px}
+.mf input:focus,.mf select:focus,.mf textarea:focus{border-color:var(--blue-mid);box-shadow:0 0 0 3px rgba(46,91,168,.1)}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mfoot{display:flex;justify-content:flex-end;gap:8px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+.bcanc{padding:9px 18px;font-size:13px;font-family:'Heebo',sans-serif;background:none;border:1px solid var(--border);border-radius:8px;cursor:pointer;color:var(--text2);font-weight:500}
+.bcanc:hover{background:var(--bg)}
+.bsave{padding:9px 22px;font-size:13px;font-family:'Heebo',sans-serif;font-weight:700;background:var(--blue-mid);border:none;border-radius:8px;cursor:pointer;color:#fff}
+.bsave:hover{background:var(--blue)}
+.hint{font-size:11px;color:var(--text3);margin-top:3px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="topbar-title">לוח מעקב פרויקטים</span>
+  <span class="topbar-sub">מערכת גיוס ומיון לשירות המדינה</span>
+  <div class="topbar-space"></div>
+  <span id="saveStatus" style="font-size:11px;color:rgba(255,255,255,.6);padding:4px 10px;background:rgba(255,255,255,.1);border-radius:6px;">✓ נשמר</span>
+  <button class="cal-btn" onclick="openCal()">📅 תזכורת שבועית בגוגל קלנדר</button>
+</div>
+
+<div class="summary" id="summary"></div>
+
+<div class="main">
+  <div class="tabs-row">
+    <button class="tab active" id="tab-projects" onclick="setTab('projects')">פרויקטים <span class="tab-count" id="cnt-p">0</span></button>
+    <button class="tab" id="tab-sosos" onclick="setTab('sosos')">שו"שים <span class="tab-count" id="cnt-s">0</span></button>
+    <div class="tabs-right">
+      <button class="add-btn" onclick="openModal()">＋ הוסף</button>
+    </div>
+  </div>
+
+  <div class="filters">
+    <span class="filter-label">סטטוס:</span>
+    <select class="filter-select" id="fStatus" onchange="render()">
+      <option value="">הכל</option>
+      <option>בתפיסת פתרון</option><option>באיפיון טכני</option><option>בפיתוח</option><option>בבדיקות</option>
+    </select>
+    <span class="filter-label">דגל:</span>
+    <select class="filter-select" id="fFlag" onchange="render()">
+      <option value="">הכל</option>
+      <option value="ok">בזמן ✓</option><option value="soon">מתקרב (30 יום)</option><option value="urgent">דחוף (7 ימים)</option><option value="overdue">עבר תאריך</option>
+    </select>
+    <input class="search-input" id="fSearch" type="text" placeholder="🔍  חיפוש..." oninput="render()"/>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:25%">שם ותיאור</th>
+          <th style="width:13%">סטטוס</th>
+          <th style="width:10%">דגל</th>
+          <th style="width:12%">תאריך התחלה</th>
+          <th style="width:12%">תאריך יעד</th>
+          <th style="width:18%">שותפים</th>
+          <th style="width:4%"></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal" onclick="bgClose(event)">
+  <div class="modal">
+    <div class="mh"><div class="mt" id="mTitle">הוסף פרויקט</div><button class="mc" onclick="closeModal()">×</button></div>
+    <div class="mf"><label>שם *</label><input id="fName" type="text" placeholder="שם הפרויקט / שו״ש"/></div>
+    <div class="mf"><label>תיאור</label><textarea id="fDesc" placeholder="תיאור קצר..."></textarea></div>
+    <div class="mf">
+      <label>סטטוס</label>
+      <select id="fStat" onchange="toggleMCust()">
+        <option>בתפיסת פתרון</option><option>באיפיון טכני</option><option>בפיתוח</option><option>בבדיקות</option>
+        <option value="__other">אחר</option>
+      </select>
+    </div>
+    <div class="mf" id="mCustWrap" style="display:none"><label>פרט סטטוס</label><input id="fCust" type="text" placeholder="הקלידי סטטוס..."/></div>
+    <div class="r2">
+      <div class="mf"><label>תאריך התחלה</label><input id="fStart" type="date"/></div>
+      <div class="mf"><label>תאריך יעד</label><input id="fEnd" type="date"/></div>
+    </div>
+    <div class="mf"><label>שותפים</label><input id="fPart" type="text" placeholder="שמות מופרדים בפסיק"/><div class="hint">לדוגמה: ענת כהן, משה לוי</div></div>
+    <div class="mf" id="typeWrap" style="display:none"><label>סוג</label><select id="fType"><option value="projects">פרויקט</option><option value="sosos">שו"ש</option></select></div>
+    <div class="mfoot"><button class="bcanc" onclick="closeModal()">ביטול</button><button class="bsave" onclick="saveModal()">הוסף</button></div>
+  </div>
+</div>
+
+<script>
+// ▼▼▼ הדביקי כאן את ה-URL שקיבלת אחרי ה-Deploy ▼▼▼
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwJyQfbei2ljH5sG5GQGaHsWedg1Z-Uqf3t6_HosOAru6ShzbWLehGSJrQU_pd1tGY9_w/exec';
+// ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+const KNOWN = ['בתפיסת פתרון','באיפיון טכני','בפיתוח','בבדיקות'];
+let saveTimer = null;
+let isSaving = false;
+
+function setStatus(type, text) {
+  const el = document.getElementById('saveStatus');
+  if (!el) return;
+  el.textContent = text;
+  el.style.color = type === 'ok' ? 'rgba(255,255,255,.6)' : type === 'saving' ? '#FDE68A' : '#FCA5A5';
+}
+
+async function saveData() {
+  if (!SCRIPT_URL || SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+    setStatus('err', '⚠ הגדר URL בקובץ');
+    return;
+  }
+  isSaving = true;
+  setStatus('saving', '⟳ שומרת...');
+  try {
+    await fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ data, nextId })
+    });
+    setStatus('ok', '✓ נשמר');
+  } catch(e) {
+    setStatus('err', '⚠ שגיאת רשת');
+  }
+  isSaving = false;
+}
+
+function scheduleSave() {
+  setStatus('saving', '⟳ שומרת...');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveData, 800);
+}
+
+async function loadData() {
+  if (!SCRIPT_URL || SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+    setStatus('err', '⚠ הגדר URL');
+    data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+    nextId = 200;
+    render();
+    return;
+  }
+  setStatus('saving', '⟳ טוענת...');
+  try {
+    const res = await fetch(SCRIPT_URL + '?t=' + Date.now());
+    const json = await res.json();
+    if (json && json.data) {
+      data = json.data;
+      nextId = json.nextId || 200;
+    } else {
+      data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+      nextId = 200;
+    }
+    setStatus('ok', '✓ נטען');
+  } catch(e) {
+    setStatus('err', '⚠ שגיאת טעינה – עובד במצב לא מקוון');
+    data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+    nextId = 200;
+  }
+  render();
+}
+
+const DEFAULT_DATA = {
+  projects: [
+    {id:1,  name:'מחיקת נתוני מועמד',             desc:'מנגנון אוטומטי לניהול מידע מועמדים לאורך זמן – הסתרה לאחר 3 שנים, מחיקה/אנונימיזציה לאחר 5 שנים, הארכה עד 6 שנים במכרזי סגל בכיר.', status:'באיפיון טכני', start:'', end:'', partners:''},
+    {id:2,  name:'אוכלוסיות גיוון',                desc:'מנגנון מערכתי אחיד לניהול העדפה דיפרנציאלית לאוכלוסיות גיוון לאורך כלל שלבי תהליך הגיוס.', status:'באיפיון טכני', start:'', end:'', partners:''},
+    {id:3,  name:'צעדים קטנים – עצמאות משרדית',   desc:'תשתית לניהול מכרזים על בסיס הצהרה – האצלת סמכויות מבוקרת למשרדים, קיצור זמני פרסום והפחתת עומס מאגף גיוס ומיון.', status:'בתפיסת פתרון', start:'', end:'', partners:''},
+    {id:4,  name:'GOVMATCH – מאגר מועמדים',        desc:'בניית Talent Pool לשירות המדינה כולל מנגנון התאמה, דיוור ישיר ומודל Scoring – פיילוט לחיבור עם SmartRecruiters.', status:'בתפיסת פתרון', start:'', end:'', partners:''},
+    {id:5,  name:'סימון מועמדים במערכת',           desc:'', status:'בתפיסת פתרון', start:'', end:'', partners:''},
+    {id:6,  name:'מערכת גיוס חדשה',               desc:'החלפת תשתית הגיוס – ATS דור 2.0 עם אוטומציה, BI וכלי AI לשיפור חוויית המועמד וקיצור זמני הגיוס.', status:'בתפיסת פתרון', start:'', end:'', partners:''},
+    {id:7,  name:'אתר הגיוס – תיקונים והרחבות',   desc:'תיקון תקלות משמעותיות, מענה לרשימת באגים ושו"שים, הרחבה פונקציונאלית (תרגום לשפות נוספות, נגישות, התאמה למובייל).', status:'בתפיסת פתרון', start:'', end:'', partners:''},
+    {id:8,  name:'הטבות למועמדים משרתי מילואים',  desc:'ממשק נתונים מול צה"ל לקבלת אחוז ההטבה, קליטת נתונים במערכת, הוספה לדוחות, למכתבי מועמדים ולניהול הרשאות.', status:'בתפיסת פתרון', start:'', end:'', partners:''},
+    {id:9,  name:'ניהול מסלולי מיון דינמיים',     desc:'מימוש ניהול מאגרים עפ"י מודל שאושר מול אג"מ, כולל בקרות לוגיות ואוטומציה; ניהול מסלול דינמי למכרזים.', status:'בתפיסת פתרון', start:'', end:'', partners:''},
+    {id:10, name:'שילוב מענה AI בתהליכי הגיוס',   desc:'חוות דעת מכונה על פסילה/אישור מועמדות, שילוב מודל שפה, בקרת מסמכים בעזרת AI ובדיקת התאמה עצמית למועמד.', status:'בתפיסת פתרון', start:'', end:'', partners:''},
+    {id:11, name:'שיפורי ביצועים כלליים בגיוס',   desc:'שיפור פונקציות המשפיעות על קצב העבודה; שימוש ב-CDS לשיפור שליפות וביצועים.', status:'בתפיסת פתרון', start:'', end:'', partners:''},
+    {id:12, name:'בניית הרכב ותיאום ועדות',       desc:'מאגר ניהול חברי ועדה, מודול ניהול זמינות ולו"ז, כלי חיפוש מתקדמים, מנגנון הבניית הרכב, אינטגרציה ומנגנוני דיווח.', status:'בתפיסת פתרון', start:'', end:'', partners:''},
+    {id:13, name:'ועדות איתור דיגיטליות',         desc:'הקמת פרופיל ללא תלות בהגשת מועמדות, פעילויות ומכתבים בתהליך, התאמות לאפליקציית יום ועדה ופרוטוקול ועדה.', status:'בתפיסת פתרון', start:'', end:'', partners:''},
+    {id:14, name:'שימור הזכות להתמודד במכרז',     desc:'סימון מועמדים עוזבים במערכת ושינוי לוגיקת זיהוי מועמד עוזב בעת ההגשה.', status:'בתפיסת פתרון', start:'', end:'', partners:''},
+    {id:15, name:'סוכן חכם',                      desc:'מימוש סוכן חכם לשיפור חוויית המשתמש; הרחבה לחיפוש משרה באמצעות AI על סמך קורות חיים בלבד.', status:'בתפיסת פתרון', start:'', end:'', partners:''},
+    {id:16, name:'נושאים נוספים',                 desc:'Google Analytics, מענה למשרות ללא חובת מכרז, חיווי למועמד, הפצת מכרזים פנימיים, ניהול לייק/דיסלייק לחוות דעת מכונה, התראות לרכזים.', status:'בתפיסת פתרון', start:'', end:'', partners:''},
+    {id:17, name:'מערכת מכתבים דינמית',           desc:'מענה ליצירת תוכן מייל וניהול תוכן להודעה כללית במסך.', status:'בתפיסת פתרון', start:'', end:'', partners:''},
+    {id:18, name:'ממשקים',                        desc:'סנכרון מידע עם GOV.IL, הרחבת ממשק נש"מ, עדכון ממשק נתוני גיוס ל-DATA GOV, הרחבת ממשק מגיוס למהות.', status:'בתפיסת פתרון', start:'', end:'', partners:''},
+    {id:19, name:'ועדות בוחנים',                 desc:'שיפורים למערכת ועדות הבוחנים הקיימת.', status:'בתפיסת פתרון', start:'', end:'', partners:''},
+    {id:20, name:'חיפוש מוצר למערכת הגיוס הבאה', desc:'תהליך חיפוש וסינון מוצר עבור מערכת הגיוס הדור הבא.', status:'בתפיסת פתרון', start:'', end:'', partners:''},
+  ],
+  sosos: [
+    {id:101, name:'סימון מכרזים ייחודיים',  desc:'הוספת מנגנון סימון מובנה למכרזים ייחודיים (מאגרים, פיילוטים, הליכים מיוחדים) כבר בשלב פתיחת המכרז, לצורך ניהול, בקרה וניתוח נתונים.', status:'באיפיון טכני', start:'', end:'', partners:''},
+    {id:102, name:'זימון למבחני מיון',      desc:'שיפור מנגנון האיחוד והפיצול של מבחנים – מניעת איחוד שגוי של מבחנים מקצועיים שונים.', status:'בפיתוח', start:'', end:'', partners:''},
+  ]
+};
+
+let data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+let nextId = 200;
+let currentTab = 'projects';
+
+function getFlag(end){
+  if(!end) return null;
+  const d = Math.ceil((new Date(end)-new Date())/86400000);
+  if(d<0)   return {k:'overdue',cls:'flag-overdue',lbl:'עבר תאריך'};
+  if(d<=7)  return {k:'urgent', cls:'flag-urgent', lbl:d+' ימים'};
+  if(d<=30) return {k:'soon',   cls:'flag-soon',   lbl:d+' ימים'};
+  return         {k:'ok',       cls:'flag-ok',      lbl:'בזמן ✓'};
+}
+function sc(s){ return s==='בתפיסת פתרון'?'s-concept':s==='באיפיון טכני'?'s-spec':s==='בפיתוח'?'s-dev':s==='בבדיקות'?'s-test':'s-other'; }
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function find(id){ return [...data.projects,...data.sosos].find(x=>x.id===id); }
+
+function updateSummary(){
+  const all=[...data.projects,...data.sosos];
+  const ov=all.filter(x=>{const f=getFlag(x.end);return f&&f.k==='overdue';}).length;
+  const wn=all.filter(x=>{const f=getFlag(x.end);return f&&(f.k==='urgent'||f.k==='soon');}).length;
+  const ac=all.filter(x=>x.status==='בפיתוח'||x.status==='בבדיקות').length;
+  document.getElementById('summary').innerHTML=`
+    <div class="scard c-blue"><div class="scard-label">סה"כ פרויקטים ושו"שים</div><div class="scard-value">${all.length}</div><div class="scard-sub">${data.projects.length} פרויקטים · ${data.sosos.length} שו"שים</div></div>
+    <div class="scard c-orange"><div class="scard-label">מתקרבים לתאריך יעד</div><div class="scard-value">${wn}</div><div class="scard-sub">30 הימים הקרובים</div></div>
+    <div class="scard c-red"><div class="scard-label">עברו תאריך יעד</div><div class="scard-value">${ov}</div><div class="scard-sub">דורשים טיפול דחוף</div></div>
+    <div class="scard c-green"><div class="scard-label">בפיתוח / בבדיקות</div><div class="scard-value">${ac}</div><div class="scard-sub">פרויקטים פעילים</div></div>`;
+}
+
+function render(){
+  updateSummary();
+  document.getElementById('cnt-p').textContent=data.projects.length;
+  document.getElementById('cnt-s').textContent=data.sosos.length;
+  const q=document.getElementById('fSearch').value.toLowerCase();
+  const fs=document.getElementById('fStatus').value;
+  const ff=document.getElementById('fFlag').value;
+  const items=data[currentTab].filter(it=>{
+    if(q&&!it.name.toLowerCase().includes(q)&&!it.desc.toLowerCase().includes(q)&&!(it.partners||'').toLowerCase().includes(q)) return false;
+    if(fs&&it.status!==fs) return false;
+    if(ff){const f=getFlag(it.end);if(!f||f.k!==ff) return false;}
+    return true;
+  });
+  const tb=document.getElementById('tbody');
+  if(!items.length){tb.innerHTML=`<tr class="empty-row"><td colspan="7">אין פריטים התואמים לחיפוש</td></tr>`;return;}
+
+  tb.innerHTML=items.map(it=>{
+    const flag=getFlag(it.end);
+    const isOther=!KNOWN.includes(it.status);
+    const opts=KNOWN.map(s=>`<option${it.status===s?' selected':''}>${s}</option>`).join('')
+      +`<option value="__other">אחר</option>`;
+    const flagHtml=flag?`<span class="fb ${flag.cls}">${flag.lbl}</span>`:`<span style="color:var(--text3);font-size:12px">—</span>`;
+    const statCell = isOther
+      ? `<div style="display:flex;align-items:center;gap:4px">
+           <input class="cust-in" id="ci-${it.id}" type="text" placeholder="הקלידי סטטוס..." value="${esc(it.status)}" onblur="onCust(${it.id},this.value)" onkeydown="if(event.key==='Enter')this.blur()" style="display:block"/>
+           <button onclick="clearOther(${it.id})" title="חזרה לרשימה" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;padding:2px 4px;border-radius:4px;line-height:1" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text3)'">✕</button>
+         </div>`
+      : `<select class="stat-sel ${sc(it.status)}" id="ss-${it.id}" onchange="onStat(${it.id},this)">${opts}</select>`;
+    return `<tr class="data-row" id="row-${it.id}">
+      <td>
+        <textarea class="f-text" rows="1" oninput="ar(this);set(${it.id},'name',this.value)" onblur="scheduleSave()">${esc(it.name)}</textarea>
+        <textarea class="f-text f-desc" rows="1" placeholder="הוסיפי תיאור..." oninput="ar(this);set(${it.id},'desc',this.value)" onblur="scheduleSave()">${esc(it.desc)}</textarea>
+      </td>
+      <td id="stat-cell-${it.id}">${statCell}</td>
+      <td id="fl-${it.id}">${flagHtml}</td>
+      <td><input class="f-date" type="date" value="${it.start||''}" onchange="set(${it.id},'start',this.value);scheduleSave()"/></td>
+      <td><input class="f-date" type="date" value="${it.end||''}" onchange="set(${it.id},'end',this.value);refreshFlag(${it.id});scheduleSave()"/></td>
+      <td><input class="f-part" type="text" value="${esc(it.partners||'')}" placeholder="שותפים..." onblur="set(${it.id},'partners',this.value);scheduleSave()"/></td>
+      <td><button class="del-btn" onclick="del(${it.id})" title="מחיקה">🗑</button></td>
+    </tr>`;
+  }).join('');
+
+  document.querySelectorAll('.f-text').forEach(ar);
+}
+
+function ar(el){el.style.height='auto';el.style.height=el.scrollHeight+'px';}
+function set(id,f,v){const it=find(id);if(it)it[f]=v;}
+function onStat(id,sel){
+  const it=find(id);if(!it)return;
+  if(sel.value==='__other'){
+    it.status='';
+    renderStatCell(id);
+    // focus the new input
+    setTimeout(()=>{const ci=document.getElementById('ci-'+id);if(ci)ci.focus();},30);
+  } else {
+    it.status=sel.value;
+    sel.className='stat-sel '+sc(sel.value);
+  }
+  updateSummary();scheduleSave();
+}
+function onCust(id,v){const it=find(id);if(it)it.status=v;updateSummary();scheduleSave();}
+function clearOther(id){
+  const it=find(id);if(!it)return;
+  it.status='בתפיסת פתרון';
+  renderStatCell(id);
+  updateSummary();scheduleSave();
+}
+function renderStatCell(id){
+  const it=find(id);if(!it)return;
+  const cell=document.getElementById('stat-cell-'+id);if(!cell)return;
+  const isOther=!KNOWN.includes(it.status);
+  const opts=KNOWN.map(s=>`<option${it.status===s?' selected':''}>${s}</option>`).join('')+`<option value="__other">אחר</option>`;
+  cell.innerHTML = isOther
+    ? `<div style="display:flex;align-items:center;gap:4px">
+         <input class="cust-in" id="ci-${id}" type="text" placeholder="הקלידי סטטוס..." value="${esc(it.status)}" onblur="onCust(${id},this.value)" onkeydown="if(event.key==='Enter')this.blur()" style="display:block"/>
+         <button onclick="clearOther(${id})" title="חזרה לרשימה" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;padding:2px 4px;border-radius:4px;line-height:1" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text3)'">✕</button>
+       </div>`
+    : `<select class="stat-sel ${sc(it.status)}" id="ss-${id}" onchange="onStat(${id},this)">${opts}</select>`;
+}
+function refreshFlag(id){
+  const it=find(id);if(!it)return;
+  const flag=getFlag(it.end);
+  const cell=document.getElementById('fl-'+id);
+  if(cell) cell.innerHTML=flag?`<span class="fb ${flag.cls}">${flag.lbl}</span>`:`<span style="color:var(--text3);font-size:12px">—</span>`;
+  updateSummary();
+}
+function del(id){
+  if(!confirm('למחוק פריט זה?'))return;
+  data.projects=data.projects.filter(x=>x.id!==id);
+  data.sosos=data.sosos.filter(x=>x.id!==id);
+  render();saveData();
+}
+function setTab(t){
+  currentTab=t;
+  document.getElementById('tab-projects').classList.toggle('active',t==='projects');
+  document.getElementById('tab-sosos').classList.toggle('active',t==='sosos');
+  render();
+}
+function openModal(){
+  document.getElementById('mTitle').textContent='הוסף '+(currentTab==='projects'?'פרויקט':'שו"ש');
+  ['fName','fDesc','fCust','fStart','fEnd','fPart'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fStat').value='בתפיסת פתרון';
+  document.getElementById('mCustWrap').style.display='none';
+  document.getElementById('fType').value=currentTab;
+  document.getElementById('modal').classList.add('open');
+  setTimeout(()=>document.getElementById('fName').focus(),80);
+}
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+function bgClose(e){if(e.target===document.getElementById('modal'))closeModal();}
+function toggleMCust(){document.getElementById('mCustWrap').style.display=document.getElementById('fStat').value==='__other'?'block':'none';}
+function saveModal(){
+  const name=document.getElementById('fName').value.trim();
+  if(!name){document.getElementById('fName').focus();return;}
+  let status=document.getElementById('fStat').value;
+  if(status==='__other') status=document.getElementById('fCust').value.trim()||'לא מוגדר';
+  data[document.getElementById('fType').value].push({
+    id:nextId++,name,
+    desc:document.getElementById('fDesc').value.trim(),
+    status,
+    start:document.getElementById('fStart').value,
+    end:document.getElementById('fEnd').value,
+    partners:document.getElementById('fPart').value.trim()
+  });
+  closeModal();render();saveData();
+}
+function openCal(){
+  window.open('https://calendar.google.com/calendar/r/eventedit?text='+encodeURIComponent('✅ עדכון שבועי – מעקב פרויקטים')+'&details='+encodeURIComponent('פגישה שבועית לעדכון סטטוס פרויקטים ושו"שים')+'&recur=RRULE:FREQ=WEEKLY','_blank');
+}
+// טעינה ראשונית מ-Google Sheets
+loadData();
+</script>
+</body>
+</html>
